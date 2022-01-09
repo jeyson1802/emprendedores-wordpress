@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  db_emprendedores:
+    image: mysql:8.0
+    container_name: db_emprendedores
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - MYSQL_DATABASE=wordpress
+    volumes:
+      - ./dbdata_emprendedores:/var/lib/mysql
+    command: '--default-authentication-plugin=mysql_native_password'
+    networks:
+      - emprendedores-network
+
+  wordpress_emprendedores:
+    depends_on:
+      - db_emprendedores
+    image: wordpress:5.8.2
+    container_name: wordpress_emprendedores
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - 9092:80
+    environment:
+      - WORDPRESS_DB_HOST=db_emprendedores:3306
+      - WORDPRESS_DB_USER=$MYSQL_USER
+      - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
+      - WORDPRESS_DB_NAME=wordpress
+    volumes:
+      - ./uploads.ini.emprendedores:/usr/local/etc/php/conf.d/uploads.ini
+      - ./wordpress_emprendedores:/var/www/html
+    networks:
+      - emprendedores-network
+  
+networks:
+  emprendedores-network:
+    driver: bridge  
